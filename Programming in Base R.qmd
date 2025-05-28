@@ -1,0 +1,199 @@
+---
+title: "Programming in Base R"
+format: pdf
+editor: visual
+---
+
+## Task 1: Basic Vector Practice
+
+### Question 1:
+
+```{r}
+pre <- c(130, 128, 116, 124, 133, 134, 118, 126, 114, 127, 141, 
+         138, 128, 140, 137, 131, 120, 128, 139, 135)
+
+post <- c(114, 98, 113, 99, 107, 116, 113, 111, 119, 117, 
+          101, 119, 130, 122, 106, 106, 124, 102, 117, 113)
+```
+
+### Question 2:
+
+```{r}
+subject_names <- paste("Subject", 1:20, sep = "_")
+names(pre) <- subject_names
+names(post) <- subject_names
+subject_names
+```
+
+### Question 3:
+
+```{r}
+diff_op <- pre - post
+diff_op
+```
+
+### Question 4:
+
+```{r}
+mean(diff_op)
+```
+
+### Question 5:
+
+```{r}
+post_treatment_bp <- which(diff_op > 0)
+post_treatment_bp
+```
+
+### Question 6:
+
+```{r}
+only_pos_change <- diff_op[diff_op > 0]
+only_pos_change
+```
+
+### Question 7:
+
+```{r}
+mean_pos_decrease <- mean(only_pos_change)
+mean_pos_decrease
+```
+
+## Task 2: Basic Data Frame Practice
+
+### Question 1:
+
+```{r}
+df_bp <- data.frame(patient = subject_names, pre_bp = pre, 
+                    post_bp = post, diff_bp = diff_op)
+```
+
+### Question 2:
+
+```{r}
+subset(df_bp, diff_bp < 0)
+```
+
+### Question 3:
+
+```{r}
+df_bp$post_120_below <- df_bp$post_bp < 120
+```
+
+### Question 4:
+
+```{r}
+knitr::kable(df_bp)
+```
+
+## Task 3: List Practice
+
+### Question 1:
+
+```{r}
+pre_placebo <- c(138, 135, 147, 117, 152, 134, 114, 121, 131, 130)
+post_placebo <- c(105, 136, 123, 130, 134, 143, 135, 139, 120, 124)
+
+subject_names_placebo <- paste("Subject", 1:10, sep = "_")
+diff_placebo <- pre_placebo - post_placebo
+post_120_below_placebo <- post_placebo < 120
+
+bp_df_placebo <- data.frame(patient = subject_names_placebo, 
+                            pre_bp = pre_placebo, post_bp = 
+                              post_placebo, diff_bp = diff_placebo, 
+                            post_below_120 = post_120_below_placebo)
+```
+
+### Question 2:
+
+```{r}
+bp_list <- list(treatment = df_bp, placebo = bp_df_placebo)
+```
+
+### Question 3:
+
+```{r}
+bp_list[1]
+bp_list[[1]]
+bp_list$treatment
+```
+
+### Question 4:
+
+```{r}
+bp_list$placebo$pre_bp
+```
+
+## Task 4: Control Flow Practice
+
+### Question 1:
+
+```{r}
+df_bp$status <- character(20)
+bp_df_placebo$status <- character(10)
+```
+
+### Question 2:
+
+```{r}
+for (i in 1:20) {
+  bp <- bp_list$treatment$post_bp[i]
+  
+  if (bp <= 120) {
+    bp_list$treatment$status[i] <- "optimal"
+  } else if (bp <= 130) {
+    bp_list$treatment$status[i] <- "borderline"
+  } else {
+    bp_list$treatment$status[i] <- "high"
+  }
+}
+```
+
+### Question 3:
+
+```{r}
+for (i in 1:10) {
+  bp <- bp_list$placebo$post_bp[i]
+  
+  if (bp <= 120) {
+    bp_list$placebo$status[i] <- "optimal"
+  } else if (bp <= 130) {
+    bp_list$placebo$status[i] <- "borderline"
+  } else {
+    bp_list$placebo$status[i] <- "high"
+  }
+}
+```
+
+## Task 5: Function Writing
+
+### Question 1:
+
+```{r}
+summary_stats <- function(df_list, stat = "mean") {
+
+  my_fun <- get(stat)
+
+  treat <- df_list[[1]]
+  placeb <- df_list[[2]]
+
+  treat_pre <- my_fun(treat$pre)
+  treat_post <- my_fun(treat$post)
+  treat_diff <- my_fun(treat$diff)
+
+  placeb_pre <- my_fun(placeb$pre)
+  placeb_post <- my_fun(placeb$post)
+  placeb_diff <- my_fun(placeb$diff)
+
+  result_values <- c(treat_pre, treat_post, treat_diff, 
+                     placeb_pre, placeb_post, placeb_diff)
+
+  stat_names <- paste(stat, c("treat_pre", "treat_post", 
+                              "treat_diff",  "placebo_pre", 
+                              "placebo_post", "placebo_diff"), sep = "_")
+
+  names(result_values) <- stat_names
+
+  result_values
+}
+```
